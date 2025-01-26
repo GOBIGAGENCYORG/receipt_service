@@ -8,7 +8,9 @@ on:
       - test
 
 env:
-  DOTENV_FILENAME: /tmp/receipt_service.env
+  DOTENV_FILENAME: /tmp/receipt-service.env
+  DOCKERHUB_SERVICE_NAME: gobigagency/receipt-service
+  DOCKER_SERVICE_NAME: receipt-service
 
 jobs:
   build: 
@@ -28,8 +30,8 @@ jobs:
 
       - name: Build and push to hub
         run: |
-          docker build -t gobigagency/receipt-service:latest .
-          docker push gobigagency/receipt-service:latest
+          docker build -t ${{ env.DOCKERHUB_SERVICE_NAME }}:latest .
+          docker push ${{ env.DOCKERHUB_SERVICE_NAME }}:latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -51,7 +53,7 @@ jobs:
             echo FTP_USERNAME=${{ vars.FTP_USERNAME }} >> ${{ env.DOTENV_FILENAME}}
             echo FTP_PASSWORD=${{ secrets.FTP_PASSWORD }} >> ${{ env.DOTENV_FILENAME}}
             echo EMAIL_TOKEN=${{ secrets.EMAIL_TOKEN }} >> ${{ env.DOTENV_FILENAME}}
-            
+      
       - name: Deploy Receipt Service Container
         uses: appleboy/ssh-action@master
         with:
@@ -59,27 +61,27 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            docker pull gobigagency/receipt-service:latest
+            docker pull ${{ env.DOCKERHUB_SERVICE_NAME }}:latest
 
-            docker stop receipt_service || true
-            docker rm receipt_service || true
+            docker stop ${{ env.DOCKER_SERVICE_NAME }} || true
+            docker rm ${{ env.DOCKER_SERVICE_NAME }} || true
 
             docker network inspect ${{ vars.SERVICE_DOCKER_NETWORK }} >/dev/null 2>&1 || \
             docker network create --driver bridge ${{ vars.SERVICE_DOCKER_NETWORK }}
 
-
             docker run -d \
-              --name receipt_service \
+              --name ${{ env.DOCKER_SERVICE_NAME }} \
               --restart always \
               --network ${{ vars.SERVICE_DOCKER_NETWORK }} \
-              --env-file ${{ env.DOTENV_FILENAME }}
-              gobigagency/receipt-service:latest
+              --env-file ${{ env.DOTENV_FILENAME }} \
+              ${{ env.DOCKERHUB_SERVICE_NAME }}:latest
       
       - name: Delete .env file
         uses: appleboy/ssh-action@master
+        if: always()
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            rm ${{ env.DOTENV_FILENAME}}
+            rm -f ${{ env.DOTENV_FILENAME}}

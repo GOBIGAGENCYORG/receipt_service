@@ -47,12 +47,14 @@ jobs:
             touch ${{ env.DOTENV_FILENAME}}
             echo RABBITMQ_HOST=${{ vars.RABBITMQ_HOST }} >> ${{ env.DOTENV_FILENAME}}
             echo LOGGING_LEVEL=${{ vars.LOGGING_LEVEL }} >> ${{ env.DOTENV_FILENAME}}
+            echo SERVICE_EMAIL_ADDRESS=${{ vars.SERVICE_EMAIL_ADDRESS }} >> ${{ env.DOTENV_FILENAME}}
             echo EMAIL_SMTP_ADDRESS=${{ vars.EMAIL_SMTP_ADDRESS }} >> ${{ env.DOTENV_FILENAME}}
             echo EMAIL_SMTP_PORT=${{ vars.EMAIL_SMTP_PORT }} >> ${{ env.DOTENV_FILENAME}}
             echo FTP_HOST=${{ vars.FTP_HOST }} >> ${{ env.DOTENV_FILENAME}}
             echo FTP_USERNAME=${{ vars.FTP_USERNAME }} >> ${{ env.DOTENV_FILENAME}}
             echo FTP_PASSWORD=${{ secrets.FTP_PASSWORD }} >> ${{ env.DOTENV_FILENAME}}
             echo EMAIL_TOKEN=${{ secrets.EMAIL_TOKEN }} >> ${{ env.DOTENV_FILENAME}}
+            echo RECEIPTS_RABBIT_QUEUE=${{ vars.RECEIPTS_RABBIT_QUEUE }} >> ${{ env.DOTENV_FILENAME}}     
       
       - name: Deploy Receipt Service Container
         uses: appleboy/ssh-action@master

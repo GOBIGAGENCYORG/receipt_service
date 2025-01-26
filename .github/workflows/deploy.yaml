@@ -64,10 +64,15 @@ jobs:
             docker stop receipt_service || true
             docker rm receipt_service || true
 
+            docker network inspect ${{ vars.SERVICE_DOCKER_NETWORK }} >/dev/null 2>&1 || \
+            docker network create --driver bridge ${{ vars.SERVICE_DOCKER_NETWORK }}
+
+
             docker run -d \
               --name receipt_service \
               --restart always \
-              --network gobig \
+              --network ${{ vars.SERVICE_DOCKER_NETWORK }} \
+              --env-file ${{ env.DOTENV_FILENAME }}
               gobigagency/receipt-service:latest
       
       - name: Delete .env file
